@@ -46,6 +46,9 @@ int main()
     }
   }
 
+  // Free memory galore
+  free(command);
+
   // -------- PROFILING --------
   clock_t end = clock();
   double elapsed_time = (end - start) / (double)CLOCKS_PER_SEC;
