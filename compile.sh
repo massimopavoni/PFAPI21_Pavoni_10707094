@@ -1,0 +1,1 @@
+gcc -DEVAL -std=gnu11 -O2 -pipe -static -s -o $1 $1.c -lm -Wall

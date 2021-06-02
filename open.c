@@ -27,6 +27,9 @@ typedef struct
   // Maximum size of the heap: unsigned int
   unsigned int size;
 
+  // Positions of vertices in the heap: unsigned int *
+  unsigned int *verticesPositions;
+
   // Array of keys: VDTuple *
   VDTuple *keys;
 
@@ -53,8 +56,8 @@ typedef struct
   // List length: unsigned int
   unsigned int length;
 
-  // Maximum list length: unsigned int *
-  unsigned int *maxLength;
+  // Maximum list length: unsigned int
+  unsigned int maxLength;
 
   // First element: GFElement *
   GFElement *first;
@@ -100,10 +103,9 @@ void MinHeapInsert(MinHeap *minHeap, unsigned int vertex, unsigned int distance)
 // Return type: void
 // Arguments
 // - min-heap structure pointer: MinHeap *
-// - index of distance to decrease: unsigned int
 // - vertex of distance to decrease: unsigned int
 // - new distance value: unsigned int
-void MinHeapDecreaseDistance(MinHeap *minHeap, unsigned int index, unsigned int vertex, unsigned int distance);
+void MinHeapDecreaseDistance(MinHeap *minHeap, unsigned int vertex, unsigned int distance);
 
 // Min-heap extract min function to get the minimum distance (and its vertex) inside the array.
 //
@@ -117,8 +119,8 @@ VDTuple *MinHeapPopMin(MinHeap *minHeap);
 // Return type: void
 // Arguments
 // - min-heap structure pointer: MinHeap *
-// - root index from which the function starts: unsigned int
-void MinHeapify(MinHeap *minHeap, unsigned int root);
+// - index from which the function starts: unsigned int
+void MinHeapify(MinHeap *minHeap, unsigned int index);
 
 // GFElement init function to allocate memory for the element and return pointer.
 //
@@ -132,8 +134,8 @@ GFElement *GFElementInit(unsigned int graphIndex, unsigned int graphFitness);
 //
 // Return type: List *
 // Arguments
-// - max length of the list: unsigned int *
-List *ListInit(unsigned int *maxLength);
+// - max length of the list: unsigned int
+List *ListInit(unsigned int maxLength);
 
 // List insert function to check if graph goes in the ranking and pop worst graph if needed.
 //
@@ -184,10 +186,14 @@ int main()
   unsigned int graphIndex = UINT_MAX;
 
   // Read graph rank info
-  scanf("%u %u", &vertices, &bestGraphs);
+  if (!scanf("%u %u", &vertices, &bestGraphs))
+  {
+    fprintf(stderr, "input error: scanf vertices bestGraphs");
+    exit(1);
+  }
 
   // Best graphs list: List *
-  List *bestGraphsList = ListInit(&bestGraphs);
+  List *bestGraphsList = ListInit(bestGraphs);
 
   // String command: char*
   char *command = malloc(MAX_COMMAND_SIZE * sizeof *command);
@@ -196,7 +202,11 @@ int main()
   while (1)
   {
     // Read command
-    scanf("%s", command);
+    if (!scanf("%s", command))
+    {
+      fprintf(stderr, "input error: scanf command");
+      exit(1);
+    }
 
     // After failed read, if eof exit the loop
     if (feof(stdin))
@@ -222,7 +232,7 @@ int main()
 
   clock_t end = clock();
   double elapsed_time = (end - start) / (double)CLOCKS_PER_SEC;
-  fprintf(stderr, "\n%lf", elapsed_time);
+  fprintf(stderr, "\n%lf\n", elapsed_time);
 
   // -------- PROFILING --------
 
@@ -245,8 +255,18 @@ unsigned int GetGraphFitness(unsigned int *vertices)
   for (unsigned int i = 0; i < *vertices; i++)
   {
     for (unsigned int j = 0; j < *vertices - 1; j++)
-      scanf("%u,", adjacencyMatrix + i * *vertices + j);
-    scanf("%u", adjacencyMatrix + i * *vertices + *vertices - 1);
+    {
+      if (!scanf("%u,", adjacencyMatrix + i * *vertices + j))
+      {
+        fprintf(stderr, "input error: scanf adjacencyMatrix");
+        exit(1);
+      }
+    }
+    if (!scanf("%u", adjacencyMatrix + i * *vertices + *vertices - 1))
+    {
+      fprintf(stderr, "input error: scanf adjacencyMatrix");
+      exit(1);
+    }
   }
 
   // Graph fitness calculated by summation of all shortest paths
@@ -302,11 +322,11 @@ unsigned int DijkstraSum(unsigned int *vertices, unsigned int *adjacencyMatrix, 
     for (unsigned int i = 0; i < *vertices; i++)
     {
       // If total distance is better, update min-heap
-      if (!processed[i] && *(adjacencyMatrix + vdTuple->vertex * *vertices + i) && vdTuple->distance != UINT_MAX &&
+      if (!processed[i] && *(adjacencyMatrix + vdTuple->vertex * *vertices + i) && distances[vdTuple->vertex] != UINT_MAX &&
           distances[i] > distances[vdTuple->vertex] + *(adjacencyMatrix + vdTuple->vertex * *vertices + i))
       {
         distances[i] = distances[vdTuple->vertex] + *(adjacencyMatrix + vdTuple->vertex * *vertices + i);
-        MinHeapDecreaseDistance(minHeap, i, i, distances[i]);
+        MinHeapDecreaseDistance(minHeap, i, distances[i]);
       }
     }
   }
@@ -322,8 +342,6 @@ unsigned int DijkstraSum(unsigned int *vertices, unsigned int *adjacencyMatrix, 
         distancesSum += distances[i];
     }
   }
-
-  printf("%u\n", distancesSum);
 
   // Free 'em all
   free(minHeap);
@@ -344,6 +362,7 @@ MinHeap *MinHeapInit(unsigned int *size)
 
   minHeap->size = *size;
   minHeap->heapSize = 0;
+  minHeap->verticesPositions = malloc(*size * sizeof minHeap->verticesPositions);
   minHeap->keys = malloc(*size * sizeof minHeap->keys);
 
   // Return pointer to struct
@@ -355,29 +374,35 @@ MinHeap *MinHeapInit(unsigned int *size)
 void MinHeapInsert(MinHeap *minHeap, unsigned int vertex, unsigned int distance)
 {
   (minHeap->heapSize)++;
+  (minHeap->verticesPositions)[vertex] = vertex;
   (minHeap->keys)[minHeap->heapSize - 1].vertex = vertex;
   (minHeap->keys)[minHeap->heapSize - 1].distance = distance;
-
-  MinHeapDecreaseDistance(minHeap, (minHeap->heapSize) - 1, vertex, distance);
 }
 
 // MinHeapDecreaseDistance implementation
 
-void MinHeapDecreaseDistance(MinHeap *minHeap, unsigned int index, unsigned int vertex, unsigned int distance)
+void MinHeapDecreaseDistance(MinHeap *minHeap, unsigned int vertex, unsigned int distance)
 {
+  // Get index of vertex
+  unsigned int index = (minHeap->verticesPositions)[vertex];
+
   // Set new key value
   (minHeap->keys)[index].vertex = vertex;
   (minHeap->keys)[index].distance = distance;
 
   // Swap to correct order
-  while (index > 0 && (minHeap->keys)[(index - 1) / 2].distance > (minHeap->keys)[index].distance)
+  while (index && (minHeap->keys)[(index - 1) / 2].distance > (minHeap->keys)[index].distance)
   {
-    // Swap
+    // Swap vertices' positions
+    (minHeap->verticesPositions)[(minHeap->keys)[index].vertex] = (index - 1) / 2;
+    (minHeap->verticesPositions)[(minHeap->keys)[(index - 1) / 2].vertex] = index;
+
+    // Swap tuples
     VDTuple tempKey = (minHeap->keys)[(index - 1) / 2];
     (minHeap->keys)[(index - 1) / 2] = (minHeap->keys)[index];
     (minHeap->keys)[index] = tempKey;
 
-    // Next parent
+    // Climb up
     index = (index - 1) / 2;
   }
 }
@@ -391,8 +416,9 @@ VDTuple *MinHeapPopMin(MinHeap *minHeap)
   min->vertex = (minHeap->keys)[0].vertex;
   min->distance = (minHeap->keys)[0].distance;
 
-  // Assign last item to first and fix
+  // Assign last item to first, update vertex position and fix
   (minHeap->keys)[0] = (minHeap->keys)[minHeap->heapSize - 1];
+  (minHeap->verticesPositions)[min->vertex] = 0;
   (minHeap->heapSize)--;
   MinHeapify(minHeap, 0);
 
@@ -402,29 +428,33 @@ VDTuple *MinHeapPopMin(MinHeap *minHeap)
 
 // MinHeapify implementation
 
-void MinHeapify(MinHeap *minHeap, unsigned int root)
+void MinHeapify(MinHeap *minHeap, unsigned int index)
 {
   // Get index of left and right children
-  unsigned int left = 2 * root + 1;
-  unsigned int right = 2 * root + 2;
+  unsigned int left = 2 * index + 1;
+  unsigned int right = 2 * index + 2;
 
   // Min key index
-  unsigned int min = root;
+  unsigned int min = index;
 
   // Find min key index
-  if (left < minHeap->heapSize && (minHeap->keys)[left].distance < (minHeap->keys)[root].distance)
+  if (left < minHeap->heapSize && (minHeap->keys)[left].distance < (minHeap->keys)[min].distance)
     min = left;
 
   if (right < minHeap->heapSize && (minHeap->keys)[right].distance < (minHeap->keys)[min].distance)
     min = right;
 
   // If min-heap is still not fixed
-  if (min != root)
+  if (min != index)
   {
-    // Swap
+    // Swap vertices' positions
+    (minHeap->verticesPositions)[(minHeap->keys)[min].vertex] = index;
+    (minHeap->verticesPositions)[(minHeap->keys)[index].vertex] = min;
+
+    // Swap tuples
     VDTuple tempKey = (minHeap->keys)[min];
-    (minHeap->keys)[min] = (minHeap->keys)[root];
-    (minHeap->keys)[root] = tempKey;
+    (minHeap->keys)[min] = (minHeap->keys)[index];
+    (minHeap->keys)[index] = tempKey;
 
     // Climb up
     MinHeapify(minHeap, min);
@@ -448,7 +478,7 @@ GFElement *GFElementInit(unsigned int graphIndex, unsigned int graphFitness)
 
 // ListInit implementation
 
-List *ListInit(unsigned int *maxLength)
+List *ListInit(unsigned int maxLength)
 {
   // Allocate list memory, initialize length, max length and first element
   List *list = malloc(sizeof *list);
@@ -466,7 +496,7 @@ List *ListInit(unsigned int *maxLength)
 void ListInsertGraph(List *bestGraphsList, unsigned int graphIndex, unsigned int graphFitness)
 {
   // Well...
-  if (*(bestGraphsList->maxLength) > 0)
+  if (bestGraphsList->maxLength > 0)
   {
     // Allocate new graph
     GFElement *newGraph = GFElementInit(graphIndex, graphFitness);
@@ -476,50 +506,51 @@ void ListInsertGraph(List *bestGraphsList, unsigned int graphIndex, unsigned int
     {
       free(newGraph);
       return;
-
-    } // Empty list or first element case
-    else if (bestGraphsList->first == NULL || (bestGraphsList->first)->graphFitness >= newGraph->graphFitness)
-    {
-      // Insert it as first element, increase list size
-      newGraph->next = bestGraphsList->first;
-      bestGraphsList->first = newGraph;
-      (bestGraphsList->length)++;
     }
-    // Non-empty list case
     else
     {
-      // Get first element
-      GFElement *currentGraph = bestGraphsList->first;
-
-      // Find correct position
-      while (currentGraph->next != NULL && (currentGraph->next)->graphFitness < newGraph->graphFitness)
-        currentGraph = currentGraph->next;
-
-      // Discard new graph case
-      if (currentGraph->next != NULL && (currentGraph->next)->graphFitness == newGraph->graphFitness)
+      // Empty list or first element case
+      if (bestGraphsList->first == NULL || (bestGraphsList->first)->graphFitness > newGraph->graphFitness)
       {
-        free(newGraph);
-        return;
-      }
-
-      // Insert new graph
-      newGraph->next = currentGraph->next;
-      currentGraph->next = newGraph;
-
-      // Pop worst graph if needed
-      if (bestGraphsList->length == *(bestGraphsList->maxLength))
+        // Insert it as first element
+        newGraph->next = bestGraphsList->first;
+        bestGraphsList->first = newGraph;
+      } // Non-empty list and not first element case
+      else
       {
-        currentGraph = bestGraphsList->first;
+        // Get first element
+        GFElement *currentGraph = bestGraphsList->first;
 
-        while ((currentGraph->next)->next != NULL)
+        // Find correct position
+        while (currentGraph->next != NULL && (currentGraph->next)->graphFitness < newGraph->graphFitness)
           currentGraph = currentGraph->next;
 
-        free(currentGraph->next);
+        // Discard new graph case
+        if (currentGraph->next != NULL && (currentGraph->next)->graphFitness == newGraph->graphFitness)
+        {
+          free(newGraph);
+          return;
+        }
 
-        currentGraph->next = NULL;
+        // Insert new graph
+        newGraph->next = currentGraph->next;
+        currentGraph->next = newGraph;
+      }
+
+      // Pop worst graph if needed
+      if (bestGraphsList->length == bestGraphsList->maxLength)
+      {
+        GFElement *trashTheGuyNextToMeHeBad = bestGraphsList->first;
+
+        while ((trashTheGuyNextToMeHeBad->next)->next != NULL)
+          trashTheGuyNextToMeHeBad = trashTheGuyNextToMeHeBad->next;
+
+        free(trashTheGuyNextToMeHeBad->next);
+
+        trashTheGuyNextToMeHeBad->next = NULL;
       }
       else
-        // Increase list size
+        // Otherwise increase list size
         (bestGraphsList->length)++;
     }
   }
@@ -531,13 +562,19 @@ void ListPrint(List *bestGraphsList)
 {
   GFElement *currentGraph = bestGraphsList->first;
 
+  if (currentGraph != NULL)
+  {
+    printf("%u", currentGraph->graphIndex);
+    currentGraph = currentGraph->next;
+  }
   // Just loop
   while (currentGraph != NULL)
   {
-    //printf("%u ", currentGraph->graphIndex);
-    printf("| %u %u |", currentGraph->graphIndex, currentGraph->graphFitness);
+    printf(" %u", currentGraph->graphIndex);
     currentGraph = currentGraph->next;
   }
+
+  printf("\n");
 }
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------
