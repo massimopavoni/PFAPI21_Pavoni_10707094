@@ -306,7 +306,7 @@ unsigned int DijkstraSum(unsigned int *vertices, unsigned int *adjacencyMatrix, 
   }
 
   // Distances sum
-  unsigned int distancesSum = UINT_MAX;
+  unsigned int distancesSum = 0;
 
   VDTuple *vdTuple = NULL;
 
@@ -322,25 +322,20 @@ unsigned int DijkstraSum(unsigned int *vertices, unsigned int *adjacencyMatrix, 
     for (unsigned int i = 0; i < *vertices; i++)
     {
       // If total distance is better, update min-heap
-      if (!processed[i] && *(adjacencyMatrix + vdTuple->vertex * *vertices + i) && distances[vdTuple->vertex] != UINT_MAX &&
-          distances[i] > distances[vdTuple->vertex] + *(adjacencyMatrix + vdTuple->vertex * *vertices + i))
+      if (!processed[i] && *(adjacencyMatrix + vdTuple->vertex * *vertices + i) && vdTuple->distance != UINT_MAX &&
+          distances[i] > vdTuple->distance + *(adjacencyMatrix + vdTuple->vertex * *vertices + i))
       {
-        distances[i] = distances[vdTuple->vertex] + *(adjacencyMatrix + vdTuple->vertex * *vertices + i);
+        distances[i] = vdTuple->distance + *(adjacencyMatrix + vdTuple->vertex * *vertices + i);
         MinHeapDecreaseDistance(minHeap, i, distances[i]);
       }
     }
   }
 
   // Sum up all distances
-  for (unsigned int i = 0; i < *vertices; i++)
+  for (unsigned int i = 1; i < *vertices; i++)
   {
-    if (processed[i])
-    {
-      if (distancesSum == UINT_MAX)
-        distancesSum = distances[i];
-      else if (distances[i] != UINT_MAX)
-        distancesSum += distances[i];
-    }
+    if (processed[i] && distances[i] != UINT_MAX)
+      distancesSum += distances[i];
   }
 
   // Free 'em all
