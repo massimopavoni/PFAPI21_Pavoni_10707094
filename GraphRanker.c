@@ -246,13 +246,13 @@ int main()
       break;
 
     // Parse command
-    if (strcmp(command, ADD_GRAPH_COMMAND) == 0)
+    if (!strcmp(command, ADD_GRAPH_COMMAND))
     {
       // Increment graph index and insert graph in list (if it should be there)
       graphIndex++;
       ListInsertGraph(bestGraphsList, graphIndex, GetGraphFitness(&vertices, adjacencyMatrix, minHeap, minVDTuple, distances, processed));
     }
-    else if (strcmp(command, GET_BEST_GRAPHS_COMMAND) == 0)
+    else if (!strcmp(command, GET_BEST_GRAPHS_COMMAND))
       // Print best graphs
       ListPrint(bestGraphsList);
   }
@@ -303,6 +303,7 @@ unsigned int GetGraphFitness(unsigned int *vertices, unsigned int *adjacencyMatr
       exit(1);
     }
   }
+
   // Graph fitness calculated by summation of all shortest paths
   unsigned int graphFitness = DijkstraSum(vertices, adjacencyMatrix, minHeap, minVDTuple, distances, processed, 0);
 
@@ -488,12 +489,11 @@ List *ListInit(unsigned int maxLength)
 
 void ListInsertGraph(List *bestGraphsList, unsigned int graphIndex, unsigned int graphFitness)
 {
-
   // Well...
   if (bestGraphsList->maxLength > 0)
   {
     // Empty list or first element case
-    if (bestGraphsList->first == NULL || (bestGraphsList->first)->graphFitness > graphFitness)
+    if (bestGraphsList->first == NULL || graphFitness >= (bestGraphsList->first)->graphFitness)
     {
       // Allocate new graph
       GFElement *newGraph = GFElementInit(graphIndex, graphFitness);
@@ -505,11 +505,11 @@ void ListInsertGraph(List *bestGraphsList, unsigned int graphIndex, unsigned int
     } // Non-empty list and not first element case
     else
     {
-      // Get first element
+      // Current element
       GFElement *currentGraph = bestGraphsList->first;
 
       // Find correct position
-      while (currentGraph->next != NULL && (currentGraph->next)->graphFitness < graphFitness)
+      while (currentGraph->next != NULL && graphFitness < (currentGraph->next)->graphFitness)
         currentGraph = currentGraph->next;
 
       // Allocate new graph
@@ -523,14 +523,11 @@ void ListInsertGraph(List *bestGraphsList, unsigned int graphIndex, unsigned int
     // Pop worst graph if needed
     if (bestGraphsList->length == bestGraphsList->maxLength)
     {
-      GFElement *trashTheGuyNextToMeHeBad = bestGraphsList->first;
+      GFElement *trashMe = bestGraphsList->first;
 
-      while ((trashTheGuyNextToMeHeBad->next)->next != NULL)
-        trashTheGuyNextToMeHeBad = trashTheGuyNextToMeHeBad->next;
+      bestGraphsList->first = trashMe->next;
 
-      free(trashTheGuyNextToMeHeBad->next);
-
-      trashTheGuyNextToMeHeBad->next = NULL;
+      free(trashMe);
     }
     else
       // Otherwise increase list size
