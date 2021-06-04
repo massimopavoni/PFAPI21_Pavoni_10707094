@@ -303,7 +303,6 @@ unsigned int GetGraphFitness(unsigned int *vertices, unsigned int *adjacencyMatr
       exit(1);
     }
   }
-
   // Graph fitness calculated by summation of all shortest paths
   unsigned int graphFitness = DijkstraSum(vertices, adjacencyMatrix, minHeap, minVDTuple, distances, processed, 0);
 
@@ -489,62 +488,53 @@ List *ListInit(unsigned int maxLength)
 
 void ListInsertGraph(List *bestGraphsList, unsigned int graphIndex, unsigned int graphFitness)
 {
+
   // Well...
   if (bestGraphsList->maxLength > 0)
   {
-    // Discard new graph case
-    if (bestGraphsList->first != NULL && (bestGraphsList->first)->graphFitness == graphFitness)
-      return;
+    // Empty list or first element case
+    if (bestGraphsList->first == NULL || (bestGraphsList->first)->graphFitness > graphFitness)
+    {
+      // Allocate new graph
+      GFElement *newGraph = GFElementInit(graphIndex, graphFitness);
+
+      // Insert it as first element
+      newGraph->next = bestGraphsList->first;
+      bestGraphsList->first = newGraph;
+
+    } // Non-empty list and not first element case
     else
     {
-      // Empty list or first element case
-      if (bestGraphsList->first == NULL || (bestGraphsList->first)->graphFitness > graphFitness)
-      {
-        // Allocate new graph
-        GFElement *newGraph = GFElementInit(graphIndex, graphFitness);
+      // Get first element
+      GFElement *currentGraph = bestGraphsList->first;
 
-        // Insert it as first element
-        newGraph->next = bestGraphsList->first;
-        bestGraphsList->first = newGraph;
+      // Find correct position
+      while (currentGraph->next != NULL && (currentGraph->next)->graphFitness < graphFitness)
+        currentGraph = currentGraph->next;
 
-      } // Non-empty list and not first element case
-      else
-      {
-        // Get first element
-        GFElement *currentGraph = bestGraphsList->first;
+      // Allocate new graph
+      GFElement *newGraph = GFElementInit(graphIndex, graphFitness);
 
-        // Find correct position
-        while (currentGraph->next != NULL && (currentGraph->next)->graphFitness < graphFitness)
-          currentGraph = currentGraph->next;
-
-        // Discard new graph case
-        if (currentGraph->next != NULL && (currentGraph->next)->graphFitness == graphFitness)
-          return;
-
-        // Allocate new graph
-        GFElement *newGraph = GFElementInit(graphIndex, graphFitness);
-        
-        // Insert new graph
-        newGraph->next = currentGraph->next;
-        currentGraph->next = newGraph;
-      }
-
-      // Pop worst graph if needed
-      if (bestGraphsList->length == bestGraphsList->maxLength)
-      {
-        GFElement *trashTheGuyNextToMeHeBad = bestGraphsList->first;
-
-        while ((trashTheGuyNextToMeHeBad->next)->next != NULL)
-          trashTheGuyNextToMeHeBad = trashTheGuyNextToMeHeBad->next;
-
-        free(trashTheGuyNextToMeHeBad->next);
-
-        trashTheGuyNextToMeHeBad->next = NULL;
-      }
-      else
-        // Otherwise increase list size
-        (bestGraphsList->length)++;
+      // Insert new graph
+      newGraph->next = currentGraph->next;
+      currentGraph->next = newGraph;
     }
+
+    // Pop worst graph if needed
+    if (bestGraphsList->length == bestGraphsList->maxLength)
+    {
+      GFElement *trashTheGuyNextToMeHeBad = bestGraphsList->first;
+
+      while ((trashTheGuyNextToMeHeBad->next)->next != NULL)
+        trashTheGuyNextToMeHeBad = trashTheGuyNextToMeHeBad->next;
+
+      free(trashTheGuyNextToMeHeBad->next);
+
+      trashTheGuyNextToMeHeBad->next = NULL;
+    }
+    else
+      // Otherwise increase list size
+      (bestGraphsList->length)++;
   }
 }
 
