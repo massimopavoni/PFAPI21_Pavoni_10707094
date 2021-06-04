@@ -74,4 +74,5 @@ dkms.conf
 ### User files ###
 *_test.in
 *_test.res
+open_tests/
 suite/
