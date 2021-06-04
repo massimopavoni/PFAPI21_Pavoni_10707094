@@ -70,3 +70,8 @@ dkms.conf
 .ionide
 
 # End of https://www.toptal.com/developers/gitignore/api/c,visualstudiocode
+
+### User files ###
+*_test.in
+*_test.res
+suite/
