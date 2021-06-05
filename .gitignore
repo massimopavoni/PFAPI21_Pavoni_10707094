@@ -72,6 +72,7 @@ dkms.conf
 # End of https://www.toptal.com/developers/gitignore/api/c,visualstudiocode
 
 ### User files ###
+GraphRanker
 *_test.in
 *_test.res
 open_tests/
