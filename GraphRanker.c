@@ -167,9 +167,6 @@ static const char *ADD_GRAPH_COMMAND = "AggiungiGrafo";
 // Get best graphs command string: char*
 static const char *GET_BEST_GRAPHS_COMMAND = "TopK";
 
-// Percentage of best graphs for ranking dynamic reallocation
-static const float REALLOC_PERCENTAGE = 0.1;
-
 // -------------------------------------------------------------------------- Constants --------------------------------------------------------------------------
 
 // ----------------------------------------------------------------------------- Main ----------------------------------------------------------------------------
@@ -222,7 +219,7 @@ int main()
 
   // Ranking max-heap for TopK: MaxHeap *
   MaxHeap *bestGraphsMaxHeap = malloc(sizeof *bestGraphsMaxHeap);
-  bestGraphsMaxHeap->size = (unsigned int)(bestGraphs * REALLOC_PERCENTAGE);
+  bestGraphsMaxHeap->size = bestGraphs;
   bestGraphsMaxHeap->heapSize = 0;
   bestGraphsMaxHeap->keys = malloc(bestGraphsMaxHeap->size * sizeof bestGraphsMaxHeap->keys);
 
@@ -465,31 +462,10 @@ void MaxHeapInsertGraph(MaxHeap *bestGraphsMaxHeap, unsigned int *bestGraphs, un
   // Heap is full case
   if (bestGraphsMaxHeap->heapSize == bestGraphsMaxHeap->size)
   {
-    // Is it really, tho?
-    if (bestGraphsMaxHeap->size != *bestGraphs)
-    {
-      bestGraphsMaxHeap->size = (unsigned int)(bestGraphsMaxHeap->size + *bestGraphs * REALLOC_PERCENTAGE);
-      IDTuple *tempKeys = realloc(bestGraphsMaxHeap->keys, bestGraphsMaxHeap->size * sizeof bestGraphsMaxHeap->keys);
-      if (tempKeys == NULL)
-      {
-        fprintf(stderr, "allocation error: realloc keys MaxHeapInsertGraph");
-        exit(1);
-      }
-      bestGraphsMaxHeap->keys = tempKeys;
-
-      // Insert new graph and heapify bottom up
-      (bestGraphsMaxHeap->heapSize)++;
-      (bestGraphsMaxHeap->keys)[bestGraphsMaxHeap->heapSize - 1].index = index;
-      (bestGraphsMaxHeap->keys)[bestGraphsMaxHeap->heapSize - 1].distance = fitness;
-      MaxHeapifyBottomUp(bestGraphsMaxHeap, bestGraphsMaxHeap->heapSize - 1);
-    }
-    else
-    {
-      // Well then, let's pop the worst graph (substitute and heapify top down)
-      (bestGraphsMaxHeap->keys)[0].index = index;
-      (bestGraphsMaxHeap->keys)[0].distance = fitness;
-      MaxHeapifyTopDown(bestGraphsMaxHeap, 0);
-    }
+    // Pop the worst graph (substitute and heapify top down)
+    (bestGraphsMaxHeap->keys)[0].index = index;
+    (bestGraphsMaxHeap->keys)[0].distance = fitness;
+    MaxHeapifyTopDown(bestGraphsMaxHeap, 0);
   }
   else
   {
