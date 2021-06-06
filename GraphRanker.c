@@ -124,13 +124,6 @@ void MinHeapDecreaseDistance(MinHeap *dijkstraMinHeap, unsigned int vertex, unsi
 // - graph fitness value obtained through shortest paths sum: unsigned int
 void MaxHeapInsertGraph(MaxHeap *bestGraphsMaxHeap, unsigned int *bestGraphs, unsigned int index, unsigned int fitness);
 
-// Max-heap extract max function to delete the worst graph inside the array.
-//
-// Return type: void
-// Arguments
-// - best graphs max-heap struct pointer: MaxHeap *
-void MaxHeapPopMax(MaxHeap *bestGraphsMaxHeap);
-
 // Max-heap heapify top down function that fixes the max-heap to make sure that it still respects the properties.
 //
 // Return type: void
@@ -479,16 +472,6 @@ void MaxHeapInsertGraph(MaxHeap *bestGraphsMaxHeap, unsigned int *bestGraphs, un
     (bestGraphsMaxHeap->keys)[bestGraphsMaxHeap->heapSize - 1].distance = fitness;
     MaxHeapifyBottomUp(bestGraphsMaxHeap, bestGraphsMaxHeap->heapSize - 1);
   }
-}
-
-// MaxHeapPopMax implementation
-
-void MaxHeapPopMax(MaxHeap *bestGraphsMaxHeap)
-{
-  // Assign last item to first and fix
-  (bestGraphsMaxHeap->keys)[0] = (bestGraphsMaxHeap->keys)[bestGraphsMaxHeap->heapSize - 1];
-  (bestGraphsMaxHeap->heapSize)--;
-  MaxHeapifyTopDown(bestGraphsMaxHeap, 0);
 }
 
 // MaxHeapifyTopDown implementation
