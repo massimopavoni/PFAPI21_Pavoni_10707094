@@ -7,62 +7,47 @@
 
 // --------------------------------------------------------------------------- Structs ---------------------------------------------------------------------------
 
-// VDTuple struct
+// IDTuple struct
 typedef struct
 {
-  // Vertex index
-  unsigned int vertex;
+  // Index: unsigned int
+  unsigned int index;
 
-  // Distance of vertex
+  // Distance: unsigned int
   unsigned int distance;
 
-} VDTuple;
+} IDTuple;
 
 // MinHeap struct
 typedef struct
 {
-  // Current size of the heap: unsigned int
-  unsigned int heapSize;
-
   // Maximum size of the heap: unsigned int
   unsigned int size;
+
+  // Current size of the heap: unsigned int
+  unsigned int heapSize;
 
   // Positions of vertices in the heap: unsigned int *
   unsigned int *verticesPositions;
 
-  // Keys array: VDTuple *
-  VDTuple *keys;
+  // Keys array: IDTuple *
+  IDTuple *keys;
 
 } MinHeap;
 
-// GFElement struct
-typedef struct s_GFElement GFElement;
-
-struct s_GFElement
-{
-  // Graph index: unsigned int
-  unsigned int graphIndex;
-
-  // Graph fitness: unsigned int
-  unsigned int graphFitness;
-
-  // Next list element: GFElement *
-  GFElement *next;
-};
-
-// List struct
+// MaxHeap struct
 typedef struct
 {
-  // List length: unsigned int
-  unsigned int length;
+  // Maximum size of the heap: unsigned int
+  unsigned int size;
 
-  // Maximum list length: unsigned int
-  unsigned int maxLength;
+  // Current size of the heap: unsigned int
+  unsigned int heapSize;
 
-  // First element: GFElement *
-  GFElement *first;
+  // Keys array: IDTuple *
+  IDTuple *keys;
 
-} List;
+} MaxHeap;
 
 // --------------------------------------------------------------------------- Structs ---------------------------------------------------------------------------
 
@@ -74,12 +59,12 @@ typedef struct
 // Arguments
 // - number of vertices variable pointer: unsigned int *
 // - allocated adjacency matrix pointer: unsigned int *
-// - allocated priority queue min-heap struct pointer: MinHeap *
-// - allocated min-heap min element struct pointer: VDTuple *
+// - allocated priority queue Dijkstra min-heap struct pointer: MinHeap *
+// - allocated min-heap min element struct pointer: IDTuple *
 // - allocated vertices' distances array pointer: unsigned int *
 // - allocated processed vertices array pointer: bool *
-unsigned int GetGraphFitness(unsigned int *vertices, unsigned int *adjacencyMatrix, MinHeap *minHeap,
-                             VDTuple *minVDTuple, unsigned int *distances, bool *processed);
+unsigned int GetGraphFitness(unsigned int *vertices, unsigned int *adjacencyMatrix, MinHeap *dijkstraMinHeap,
+                             IDTuple *minIDTuple, unsigned int *distances, bool *processed);
 
 // Dijkstra's algorithm to calculate shortest paths from source to all other vertices and get the total sum.
 //
@@ -87,78 +72,87 @@ unsigned int GetGraphFitness(unsigned int *vertices, unsigned int *adjacencyMatr
 // Arguments
 // - number of vertices variable pointer: unsigned int *
 // - adjacency matrix pointer: unsigned int *
-// - min-heap struct pointer: MinHeap *
-// - min-heap min element struct pointer: VDTuple *
+// - Dijkstra min-heap struct pointer: MinHeap *
+// - min-heap min element struct pointer: IDTuple *
 // - vertices' distances array pointer: unsigned int *
 // - processed vertices array pointer: unsigned int *
 // - source vertex: unsigned int
-unsigned int DijkstraSum(unsigned int *vertices, unsigned int *adjacencyMatrix, MinHeap *minHeap,
-                         VDTuple *minVDTuple, unsigned int *distances, bool *processed, unsigned int source);
+unsigned int DijkstraSum(unsigned int *vertices, unsigned int *adjacencyMatrix, MinHeap *dijkstraMinHeap,
+                         IDTuple *minIDTuple, unsigned int *distances, bool *processed, unsigned int source);
 
-// Min-heap insert function for new distance.
+// Min-heap insert function for new vertex.
 //
 // Return type: void
 // Arguments
-// - min-heap struct pointer: MinHeap *
+// - Dijkstra min-heap struct pointer: MinHeap *
 // - vertex to insert: unsigned int
 // - distance to insert: unsigned int
-void MinHeapInsert(MinHeap *minHeap, unsigned int vertex, unsigned int distance);
-
-// Min-heap decrease distance function for decreasing distances (maintaining properties).
-//
-// Return type: void
-// Arguments
-// - min-heap struct pointer: MinHeap *
-// - vertex of distance to decrease: unsigned int
-// - new distance value: unsigned int
-void MinHeapDecreaseDistance(MinHeap *minHeap, unsigned int vertex, unsigned int distance);
+void MinHeapInsertVertex(MinHeap *dijkstraMinHeap, unsigned int vertex, unsigned int distance);
 
 // Min-heap extract min function to get the minimum distance (and its vertex) inside the array.
 //
 // Return type: void
 // Arguments
-// - min-heap struct pointer: MinHeap *
-// - min-heap min element struct pointer: VDTuple *
-void MinHeapPopMin(MinHeap *minHeap, VDTuple *minVDTuple);
+// - Dijkstra min-heap struct pointer: MinHeap *
+// - min-heap min element struct pointer: IDTuple *
+void MinHeapPopMin(MinHeap *dijkstraMinHeap, IDTuple *minIDTuple);
 
 // Min-heap heapify top down function that fixes the min-heap to make sure that it still respects the properties.
 //
 // Return type: void
 // Arguments
-// - min-heap struct pointer: MinHeap *
+// - Dijkstra min-heap struct pointer: MinHeap *
 // - index from which the function starts: unsigned int
-void MinHeapifyTopDown(MinHeap *minHeap, unsigned int index);
+void MinHeapifyTopDown(MinHeap *dijkstraMinHeap, unsigned int index);
 
-// GFElement init function to allocate memory for the element and return pointer.
-//
-// Return type: GFElement *
-// Arguments
-// - graph index since the start of the program: unsigned int
-// - graph fitness value obtained through shortest paths sum: unsigned int
-GFElement *GFElementInit(unsigned int graphIndex, unsigned int graphFitness);
-
-// List init function to allocate memory for the list and return pointer.
-//
-// Return type: List *
-// Arguments
-// - max length of the list: unsigned int
-List *ListInit(unsigned int maxLength);
-
-// List insert function to check if graph goes in the ranking and pop worst graph if needed.
+// Min-heap decrease distance function for decreasing distances (maintaining properties).
 //
 // Return type: void
 // Arguments
-// - best graphs list struct pointer: List *
-// - graph index since the start of the program: unsigned int
-// - graph fitness value obtained through shortest paths sum: unsigned int
-void ListInsertGraph(List *bestGraphsList, unsigned int graphIndex, unsigned int graphFitness);
+// - Dijkstra min-heap struct pointer: MinHeap *
+// - vertex of distance to decrease: unsigned int
+// - new distance value: unsigned int
+void MinHeapDecreaseDistance(MinHeap *dijkstraMinHeap, unsigned int vertex, unsigned int distance);
 
-// List print function to get the best graphs.
+// Max heap insert function to check if graph goes in the ranking, realloc and pop worst graph if needed.
 //
 // Return type: void
 // Arguments
-// - best graphs list struct pointer: List *
-void ListPrint(List *bestGraphsList);
+// - best graphs max-heap struct pointer: MaxHeap *
+// - number of best graphs to track: unsigned int *
+// - graph index since the start of the program: unsigned int
+// - graph fitness value obtained through shortest paths sum: unsigned int
+void MaxHeapInsertGraph(MaxHeap *bestGraphsMaxHeap, unsigned int *bestGraphs, unsigned int index, unsigned int fitness);
+
+// Max-heap extract max function to delete the worst graph inside the array.
+//
+// Return type: void
+// Arguments
+// - best graphs max-heap struct pointer: MaxHeap *
+void MaxHeapPopMax(MaxHeap *bestGraphsMaxHeap);
+
+// Max-heap heapify top down function that fixes the max-heap to make sure that it still respects the properties.
+//
+// Return type: void
+// Arguments
+// - best graphs max-heap struct pointer: MaxHeap *
+// - index from which the function starts: unsigned int
+void MaxHeapifyTopDown(MaxHeap *bestGraphsMaxHeap, unsigned int index);
+
+// Max-heap heapify bottom up down function that fixes the max-heap to make sure that it still respects the properties.
+//
+// Return type: void
+// Arguments
+// - best graphs max-heap struct pointer: MaxHeap *
+// - index from which the function starts: unsigned int
+void MaxHeapifyBottomUp(MaxHeap *bestGraphsMaxHeap, unsigned int index);
+
+// Max heap print function to get the best graphs.
+//
+// Return type: void
+// Arguments
+// - best graphs max-heap struct pointer: MaxHeap *
+void MaxHeapPrint(MaxHeap *bestGraphsMaxHeap);
 
 // -------------------------------------------------------------------- Functions declaration --------------------------------------------------------------------
 
@@ -203,19 +197,19 @@ int main()
 
   // -------------------------------- Memory Allocation --------------------------------
 
-  // Allocate adjacency matrix just one time, as a single array; usage is *(adjacencyMatrix + row * *vertices + column)
+  // Adjacency matrix usage is *(adjacencyMatrix + row * *vertices + column)
 
   // Adjacency matrix for edge weight: unsigned int *
   unsigned int *adjacencyMatrix = malloc(vertices * vertices * sizeof *adjacencyMatrix);
 
   // Priority queue min-heap for Dijkstra: MinHeap *
-  MinHeap *minHeap = malloc(sizeof *minHeap);
-  minHeap->size = vertices;
-  minHeap->verticesPositions = malloc(vertices * sizeof minHeap->verticesPositions);
-  minHeap->keys = malloc(vertices * sizeof minHeap->keys);
+  MinHeap *dijkstraMinHeap = malloc(sizeof *dijkstraMinHeap);
+  dijkstraMinHeap->size = vertices;
+  dijkstraMinHeap->verticesPositions = malloc(vertices * sizeof dijkstraMinHeap->verticesPositions);
+  dijkstraMinHeap->keys = malloc(vertices * sizeof dijkstraMinHeap->keys);
 
-  // Min-heap min element for Dijkstra: VDTuple *
-  VDTuple *minVDTuple = malloc(sizeof *minVDTuple);
+  // Min-heap min element for Dijkstra: IDTuple *
+  IDTuple *minIDTuple = malloc(sizeof *minIDTuple);
 
   // Vertices' distances array: unsigned int *
   unsigned int *distances = malloc(vertices * sizeof *distances);
@@ -223,8 +217,11 @@ int main()
   // Processed vertices array: unsigned int *
   bool *processed = malloc(vertices * sizeof *processed);
 
-  // Best graphs list: List *
-  List *bestGraphsList = ListInit(bestGraphs);
+  // Ranking max-heap for TopK: MaxHeap *
+  MaxHeap *bestGraphsMaxHeap = malloc(sizeof *bestGraphsMaxHeap);
+  bestGraphsMaxHeap->size = bestGraphs;
+  bestGraphsMaxHeap->heapSize = 0;
+  bestGraphsMaxHeap->keys = malloc(bestGraphsMaxHeap->size * sizeof bestGraphsMaxHeap->keys);
 
   // String command: char*
   char *command = malloc(MAX_COMMAND_SIZE * sizeof *command);
@@ -250,19 +247,22 @@ int main()
     {
       // Increment graph index and insert graph in list (if it should be there)
       graphIndex++;
-      ListInsertGraph(bestGraphsList, graphIndex, GetGraphFitness(&vertices, adjacencyMatrix, minHeap, minVDTuple, distances, processed));
+      MaxHeapInsertGraph(bestGraphsMaxHeap, &bestGraphs, graphIndex,
+                         GetGraphFitness(&vertices, adjacencyMatrix, dijkstraMinHeap, minIDTuple, distances, processed));
     }
     else if (!strcmp(command, GET_BEST_GRAPHS_COMMAND))
       // Print best graphs
-      ListPrint(bestGraphsList);
+      MaxHeapPrint(bestGraphsMaxHeap);
   }
 
   // Free memory galore
   free(adjacencyMatrix);
-  free(minHeap);
+  free(dijkstraMinHeap->keys);
+  free(dijkstraMinHeap);
   free(distances);
   free(processed);
-  free(bestGraphsList);
+  free(bestGraphsMaxHeap->keys);
+  free(bestGraphsMaxHeap);
   free(command);
 
   // -------- PROFILING --------
@@ -283,8 +283,8 @@ int main()
 
 // GetGraphFitness implementation
 
-unsigned int GetGraphFitness(unsigned int *vertices, unsigned int *adjacencyMatrix, MinHeap *minHeap,
-                             VDTuple *minVDTuple, unsigned int *distances, bool *processed)
+unsigned int GetGraphFitness(unsigned int *vertices, unsigned int *adjacencyMatrix, MinHeap *dijkstraMinHeap,
+                             IDTuple *minIDTuple, unsigned int *distances, bool *processed)
 {
   // Input reading loop
   for (unsigned int i = 0; i < *vertices; i++)
@@ -305,7 +305,7 @@ unsigned int GetGraphFitness(unsigned int *vertices, unsigned int *adjacencyMatr
   }
 
   // Graph fitness calculated by summation of all shortest paths
-  unsigned int graphFitness = DijkstraSum(vertices, adjacencyMatrix, minHeap, minVDTuple, distances, processed, 0);
+  unsigned int graphFitness = DijkstraSum(vertices, adjacencyMatrix, dijkstraMinHeap, minIDTuple, distances, processed, 0);
 
   // Return graph fitness for ranking
   return graphFitness;
@@ -313,45 +313,45 @@ unsigned int GetGraphFitness(unsigned int *vertices, unsigned int *adjacencyMatr
 
 // DijkstraSum implementation
 
-unsigned int DijkstraSum(unsigned int *vertices, unsigned int *adjacencyMatrix, MinHeap *minHeap,
-                         VDTuple *minVDTuple, unsigned int *distances, bool *processed, unsigned int source)
+unsigned int DijkstraSum(unsigned int *vertices, unsigned int *adjacencyMatrix, MinHeap *dijkstraMinHeap,
+                         IDTuple *minIDTuple, unsigned int *distances, bool *processed, unsigned int source)
 {
   // Reset priority queue min-heap size
-  minHeap->heapSize = 0;
+  dijkstraMinHeap->heapSize = 0;
 
   // Set values for vertex 0
   distances[0] = 0;
   processed[0] = false;
-  MinHeapInsert(minHeap, 0, distances[0]);
+  MinHeapInsertVertex(dijkstraMinHeap, 0, distances[0]);
 
   // Initialize values for other vertices
   for (unsigned int i = 1; i < *vertices; i++)
   {
     distances[i] = UINT_MAX;
     processed[i] = false;
-    MinHeapInsert(minHeap, i, distances[i]);
+    MinHeapInsertVertex(dijkstraMinHeap, i, distances[i]);
   }
 
   // Distances sum
   unsigned int distancesSum = 0;
 
   // Calculate shortest path for every node
-  while (minHeap->heapSize + 1 > 1)
+  while (dijkstraMinHeap->heapSize + 1 > 1)
   {
     // Get next vertex in min-heap
-    MinHeapPopMin(minHeap, minVDTuple);
+    MinHeapPopMin(dijkstraMinHeap, minIDTuple);
 
     // Mark it as processed
-    processed[minVDTuple->vertex] = true;
+    processed[minIDTuple->index] = true;
 
     for (unsigned int i = 0; i < *vertices; i++)
     {
       // If total distance is better, update min-heap
-      if (!processed[i] && *(adjacencyMatrix + minVDTuple->vertex * *vertices + i) && minVDTuple->distance != UINT_MAX &&
-          distances[i] > minVDTuple->distance + *(adjacencyMatrix + minVDTuple->vertex * *vertices + i))
+      if (!processed[i] && *(adjacencyMatrix + minIDTuple->index * *vertices + i) && minIDTuple->distance != UINT_MAX &&
+          distances[i] > minIDTuple->distance + *(adjacencyMatrix + minIDTuple->index * *vertices + i))
       {
-        distances[i] = minVDTuple->distance + *(adjacencyMatrix + minVDTuple->vertex * *vertices + i);
-        MinHeapDecreaseDistance(minHeap, i, distances[i]);
+        distances[i] = minIDTuple->distance + *(adjacencyMatrix + minIDTuple->index * *vertices + i);
+        MinHeapDecreaseDistance(dijkstraMinHeap, i, distances[i]);
       }
     }
   }
@@ -367,62 +367,34 @@ unsigned int DijkstraSum(unsigned int *vertices, unsigned int *adjacencyMatrix, 
   return distancesSum;
 }
 
-// MinHeapInsert implementation
+// MinHeapInsertVertex implementation
 
-void MinHeapInsert(MinHeap *minHeap, unsigned int vertex, unsigned int distance)
+void MinHeapInsertVertex(MinHeap *dijkstraMinHeap, unsigned int vertex, unsigned int distance)
 {
-  (minHeap->heapSize)++;
-  (minHeap->verticesPositions)[vertex] = vertex;
-  (minHeap->keys)[minHeap->heapSize - 1].vertex = vertex;
-  (minHeap->keys)[minHeap->heapSize - 1].distance = distance;
-}
-
-// MinHeapDecreaseDistance implementation
-
-void MinHeapDecreaseDistance(MinHeap *minHeap, unsigned int vertex, unsigned int distance)
-{
-  // Get index of vertex
-  unsigned int index = (minHeap->verticesPositions)[vertex];
-
-  // Set new key value
-  (minHeap->keys)[index].vertex = vertex;
-  (minHeap->keys)[index].distance = distance;
-
-  // Swap to correct order
-  while (index && (minHeap->keys)[(index - 1) / 2].distance > (minHeap->keys)[index].distance)
-  {
-    // Swap vertices' positions
-    (minHeap->verticesPositions)[(minHeap->keys)[index].vertex] = (index - 1) / 2;
-    (minHeap->verticesPositions)[(minHeap->keys)[(index - 1) / 2].vertex] = index;
-
-    // Swap tuples
-    VDTuple tempKey = (minHeap->keys)[(index - 1) / 2];
-    (minHeap->keys)[(index - 1) / 2] = (minHeap->keys)[index];
-    (minHeap->keys)[index] = tempKey;
-
-    // Climb up
-    index = (index - 1) / 2;
-  }
+  (dijkstraMinHeap->heapSize)++;
+  (dijkstraMinHeap->verticesPositions)[vertex] = vertex;
+  (dijkstraMinHeap->keys)[dijkstraMinHeap->heapSize - 1].index = vertex;
+  (dijkstraMinHeap->keys)[dijkstraMinHeap->heapSize - 1].distance = distance;
 }
 
 // MinHeapPopMin implementation
 
-void MinHeapPopMin(MinHeap *minHeap, VDTuple *minVDTuple)
+void MinHeapPopMin(MinHeap *dijkstraMinHeap, IDTuple *minIDTuple)
 {
   // Get min
-  minVDTuple->vertex = (minHeap->keys)[0].vertex;
-  minVDTuple->distance = (minHeap->keys)[0].distance;
+  minIDTuple->index = (dijkstraMinHeap->keys)[0].index;
+  minIDTuple->distance = (dijkstraMinHeap->keys)[0].distance;
 
   // Assign last item to first, update vertex position and fix
-  (minHeap->keys)[0] = (minHeap->keys)[minHeap->heapSize - 1];
-  (minHeap->verticesPositions)[minVDTuple->vertex] = 0;
-  (minHeap->heapSize)--;
-  MinHeapify(minHeap, 0);
+  (dijkstraMinHeap->keys)[0] = (dijkstraMinHeap->keys)[dijkstraMinHeap->heapSize - 1];
+  (dijkstraMinHeap->verticesPositions)[minIDTuple->index] = 0;
+  (dijkstraMinHeap->heapSize)--;
+  MinHeapifyTopDown(dijkstraMinHeap, 0);
 }
 
 // MinHeapifyTopDown implementation
 
-void MinHeapifyTopDown(MinHeap *minHeap, unsigned int index)
+void MinHeapifyTopDown(MinHeap *dijkstraMinHeap, unsigned int index)
 {
   // Get index of left and right children
   unsigned int left = 2 * index + 1;
@@ -432,127 +404,153 @@ void MinHeapifyTopDown(MinHeap *minHeap, unsigned int index)
   unsigned int min = index;
 
   // Find min key index
-  if (left < minHeap->heapSize && (minHeap->keys)[left].distance < (minHeap->keys)[min].distance)
+  if (left < dijkstraMinHeap->heapSize && (dijkstraMinHeap->keys)[left].distance < (dijkstraMinHeap->keys)[min].distance)
     min = left;
 
-  if (right < minHeap->heapSize && (minHeap->keys)[right].distance < (minHeap->keys)[min].distance)
+  if (right < dijkstraMinHeap->heapSize && (dijkstraMinHeap->keys)[right].distance < (dijkstraMinHeap->keys)[min].distance)
     min = right;
 
   // If min-heap is still not fixed
   if (min != index)
   {
     // Swap vertices' positions
-    (minHeap->verticesPositions)[(minHeap->keys)[min].vertex] = index;
-    (minHeap->verticesPositions)[(minHeap->keys)[index].vertex] = min;
+    (dijkstraMinHeap->verticesPositions)[(dijkstraMinHeap->keys)[min].index] = index;
+    (dijkstraMinHeap->verticesPositions)[(dijkstraMinHeap->keys)[index].index] = min;
 
     // Swap tuples
-    VDTuple tempKey = (minHeap->keys)[min];
-    (minHeap->keys)[min] = (minHeap->keys)[index];
-    (minHeap->keys)[index] = tempKey;
+    IDTuple tempKey = (dijkstraMinHeap->keys)[min];
+    (dijkstraMinHeap->keys)[min] = (dijkstraMinHeap->keys)[index];
+    (dijkstraMinHeap->keys)[index] = tempKey;
 
     // Descend down
-    MinHeapify(minHeap, min);
+    MinHeapifyTopDown(dijkstraMinHeap, min);
   }
 }
 
-// GFElementInit implementation
+// MinHeapDecreaseDistance implementation
 
-GFElement *GFElementInit(unsigned int graphIndex, unsigned int graphFitness)
+void MinHeapDecreaseDistance(MinHeap *dijkstraMinHeap, unsigned int vertex, unsigned int distance)
 {
-  // Allocate element memory, initialize graph index, graph fitness and next
-  GFElement *element = malloc(sizeof *element);
+  // Get index of vertex
+  unsigned int index = (dijkstraMinHeap->verticesPositions)[vertex];
 
-  element->graphIndex = graphIndex;
-  element->graphFitness = graphFitness;
-  element->next = NULL;
+  // Set new key value
+  (dijkstraMinHeap->keys)[index].index = vertex;
+  (dijkstraMinHeap->keys)[index].distance = distance;
 
-  // Return pointer to struct
-  return element;
-}
-
-// ListInit implementation
-
-List *ListInit(unsigned int maxLength)
-{
-  // Allocate list memory, initialize length, max length and first element
-  List *list = malloc(sizeof *list);
-
-  list->length = 0;
-  list->maxLength = maxLength;
-  list->first = NULL;
-
-  // Return pointer to struct
-  return list;
-}
-
-// ListInsertGraph implementation
-
-void ListInsertGraph(List *bestGraphsList, unsigned int graphIndex, unsigned int graphFitness)
-{
-  // Well...
-  if (bestGraphsList->maxLength > 0)
+  // Swap to correct order
+  while (index && (dijkstraMinHeap->keys)[(index - 1) / 2].distance > (dijkstraMinHeap->keys)[index].distance)
   {
-    // Empty list or first element case
-    if (bestGraphsList->first == NULL || graphFitness >= (bestGraphsList->first)->graphFitness)
+    // Swap vertices' positions
+    (dijkstraMinHeap->verticesPositions)[(dijkstraMinHeap->keys)[index].index] = (index - 1) / 2;
+    (dijkstraMinHeap->verticesPositions)[(dijkstraMinHeap->keys)[(index - 1) / 2].index] = index;
+
+    // Swap tuples
+    IDTuple tempKey = (dijkstraMinHeap->keys)[(index - 1) / 2];
+    (dijkstraMinHeap->keys)[(index - 1) / 2] = (dijkstraMinHeap->keys)[index];
+    (dijkstraMinHeap->keys)[index] = tempKey;
+
+    // Climb up
+    index = (index - 1) / 2;
+  }
+}
+
+// MaxHeapInsertGraph implementation
+
+void MaxHeapInsertGraph(MaxHeap *bestGraphsMaxHeap, unsigned int *bestGraphs, unsigned int index, unsigned int fitness)
+{
+  // Heap is full case
+  if (bestGraphsMaxHeap->heapSize == bestGraphsMaxHeap->size)
+  {
+    // Pop the worst graph (substitute and heapify top down)
+    if ((bestGraphsMaxHeap->keys)[0].distance > fitness)
     {
-      // Allocate new graph
-      GFElement *newGraph = GFElementInit(graphIndex, graphFitness);
-
-      // Insert it as first element
-      newGraph->next = bestGraphsList->first;
-      bestGraphsList->first = newGraph;
-
-    } // Non-empty list and not first element case
-    else
-    {
-      // Current element
-      GFElement *currentGraph = bestGraphsList->first;
-
-      // Find correct position
-      while (currentGraph->next != NULL && graphFitness < (currentGraph->next)->graphFitness)
-        currentGraph = currentGraph->next;
-
-      // Allocate new graph
-      GFElement *newGraph = GFElementInit(graphIndex, graphFitness);
-
-      // Insert new graph
-      newGraph->next = currentGraph->next;
-      currentGraph->next = newGraph;
+      (bestGraphsMaxHeap->keys)[0].index = index;
+      (bestGraphsMaxHeap->keys)[0].distance = fitness;
+      MaxHeapifyTopDown(bestGraphsMaxHeap, 0);
     }
-
-    // Pop worst graph if needed
-    if (bestGraphsList->length == bestGraphsList->maxLength)
-    {
-      GFElement *trashMe = bestGraphsList->first;
-
-      bestGraphsList->first = trashMe->next;
-
-      free(trashMe);
-    }
-    else
-      // Otherwise increase list size
-      (bestGraphsList->length)++;
+    // (Otherwise I just skip)
+  }
+  else
+  {
+    // Insert new graph and heapify bottom up
+    (bestGraphsMaxHeap->heapSize)++;
+    (bestGraphsMaxHeap->keys)[bestGraphsMaxHeap->heapSize - 1].index = index;
+    (bestGraphsMaxHeap->keys)[bestGraphsMaxHeap->heapSize - 1].distance = fitness;
+    MaxHeapifyBottomUp(bestGraphsMaxHeap, bestGraphsMaxHeap->heapSize - 1);
   }
 }
 
-// ListPrint implementation
+// MaxHeapPopMax implementation
 
-void ListPrint(List *bestGraphsList)
+void MaxHeapPopMax(MaxHeap *bestGraphsMaxHeap)
 {
-  GFElement *currentGraph = bestGraphsList->first;
+  // Assign last item to first and fix
+  (bestGraphsMaxHeap->keys)[0] = (bestGraphsMaxHeap->keys)[bestGraphsMaxHeap->heapSize - 1];
+  (bestGraphsMaxHeap->heapSize)--;
+  MaxHeapifyTopDown(bestGraphsMaxHeap, 0);
+}
 
-  // First graph
-  if (currentGraph != NULL)
+// MaxHeapifyTopDown implementation
+
+void MaxHeapifyTopDown(MaxHeap *bestGraphsMaxHeap, unsigned int index)
+{
+  // Get index of left and right children
+  unsigned int left = 2 * index + 1;
+  unsigned int right = 2 * index + 2;
+
+  // Max key index
+  unsigned int max = index;
+
+  // Find max key index
+  if (left < bestGraphsMaxHeap->heapSize && (bestGraphsMaxHeap->keys)[left].distance > (bestGraphsMaxHeap->keys)[max].distance)
+    max = left;
+
+  if (right < bestGraphsMaxHeap->heapSize && (bestGraphsMaxHeap->keys)[right].distance > (bestGraphsMaxHeap->keys)[max].distance)
+    max = right;
+
+  // If max-heap is still not fixed
+  if (max != index)
   {
-    printf("%u", currentGraph->graphIndex);
-    currentGraph = currentGraph->next;
+    // Swap tuples
+    IDTuple tempKey = (bestGraphsMaxHeap->keys)[max];
+    (bestGraphsMaxHeap->keys)[max] = (bestGraphsMaxHeap->keys)[index];
+    (bestGraphsMaxHeap->keys)[index] = tempKey;
+
+    // Descend down
+    MaxHeapifyTopDown(bestGraphsMaxHeap, max);
   }
+}
 
-  // Just loop
-  while (currentGraph != NULL)
+// MaxHeapifyBottomUp implementation
+
+void MaxHeapifyBottomUp(MaxHeap *bestGraphsMaxHeap, unsigned int index)
+{
+  // Swap to correct order
+  while (index && (bestGraphsMaxHeap->keys)[(index - 1) / 2].distance <= (bestGraphsMaxHeap->keys)[index].distance)
   {
-    printf(" %u", currentGraph->graphIndex);
-    currentGraph = currentGraph->next;
+    // Swap tuples
+    IDTuple tempKey = (bestGraphsMaxHeap->keys)[(index - 1) / 2];
+    (bestGraphsMaxHeap->keys)[(index - 1) / 2] = (bestGraphsMaxHeap->keys)[index];
+    (bestGraphsMaxHeap->keys)[index] = tempKey;
+
+    // Climb up
+    index = (index - 1) / 2;
+  }
+}
+
+// MaxHeapPrint implementation
+
+void MaxHeapPrint(MaxHeap *bestGraphsMaxHeap)
+{
+  if (bestGraphsMaxHeap->heapSize)
+  {
+    // First graph
+    printf("%u", (bestGraphsMaxHeap->keys)[0].index);
+
+    // Just loop
+    for (unsigned int i = 1; i < bestGraphsMaxHeap->heapSize; i++)
+      printf(" %u", (bestGraphsMaxHeap->keys)[i].index);
   }
 
   printf("\n");
