@@ -1,0 +1,1 @@
+cat $1_test.in | ./$1 > $1_test.res
