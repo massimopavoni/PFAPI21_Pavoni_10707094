@@ -53,6 +53,13 @@ typedef struct
 
 // -------------------------------------------------------------------- Functions declaration --------------------------------------------------------------------
 
+// Faster unsigned int scan function.
+//
+// Return type: void
+// Arguments
+// - pointer to allocated memory: unsigned int *
+void FastUIntScan(unsigned int *x);
+
 // Get graph fitness after reading edges info.
 //
 // Return type: unsigned int
@@ -274,28 +281,32 @@ int main()
 
 // ------------------------------------------------------------------- Functions implementation ------------------------------------------------------------------
 
+// FastUIntScan implementation
+
+void FastUIntScan(unsigned int *x)
+{
+  // Skip while not a digit
+  char c = getchar_unlocked();
+  while (c < '0' || c > '9')
+    c = getchar_unlocked();
+
+  // Compose number
+  *x = 0;
+  while (c >= '0' && c <= '9')
+  {
+    *x = 10 * *x + c - 48;
+    c = getchar_unlocked();
+  }
+}
+
 // GetGraphFitness implementation
 
 unsigned int GetGraphFitness(unsigned int *vertices, unsigned int *adjacencyMatrix, MinHeap *dijkstraMinHeap,
                              IDTuple *minIDTuple, unsigned int *distances, bool *processed)
 {
   // Input reading loop
-  for (unsigned int i = 0; i < *vertices; i++)
-  {
-    for (unsigned int j = 0; j < *vertices - 1; j++)
-    {
-      if (!scanf("%u,", adjacencyMatrix + i * *vertices + j))
-      {
-        fprintf(stderr, "input error: scanf adjacencyMatrix");
-        exit(1);
-      }
-    }
-    if (!scanf("%u", adjacencyMatrix + i * *vertices + *vertices - 1))
-    {
-      fprintf(stderr, "input error: scanf adjacencyMatrix");
-      exit(1);
-    }
-  }
+  for (unsigned int i = 0; i < *vertices * *vertices; i++)
+    FastUIntScan(adjacencyMatrix + i);
 
   // Graph fitness calculated by summation of all shortest paths
   unsigned int graphFitness = DijkstraSum(vertices, adjacencyMatrix, dijkstraMinHeap, minIDTuple, distances, processed, 0);
