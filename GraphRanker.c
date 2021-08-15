@@ -158,14 +158,11 @@ void MaxHeapPrint(MaxHeap *bestGraphsMaxHeap);
 
 // -------------------------------------------------------------------------- Constants --------------------------------------------------------------------------
 
-// Max command string size: unsigned char
-static const unsigned char MAX_COMMAND_SIZE = 13;
+// Add graph command string: char
+static const char ADD_GRAPH_COMMAND = 'A';
 
-// Add graph command string: char*
-static const char *ADD_GRAPH_COMMAND = "AggiungiGrafo";
-
-// Get best graphs command string: char*
-static const char *GET_BEST_GRAPHS_COMMAND = "TopK";
+// Get best graphs command string: char
+static const char GET_BEST_GRAPHS_COMMAND = 'T';
 
 // -------------------------------------------------------------------------- Constants --------------------------------------------------------------------------
 
@@ -189,11 +186,8 @@ int main()
   unsigned int graphIndex = UINT_MAX;
 
   // Read graph rank info
-  if (!scanf("%u %u", &vertices, &bestGraphs))
-  {
-    fprintf(stderr, "input error: scanf vertices bestGraphs");
-    exit(1);
-  }
+  FastUIntScan(&vertices);
+  FastUIntScan(&bestGraphs);
 
   // -------------------------------- Memory Allocation --------------------------------
 
@@ -223,8 +217,8 @@ int main()
   bestGraphsMaxHeap->heapSize = 0;
   bestGraphsMaxHeap->keys = malloc(bestGraphsMaxHeap->size * sizeof bestGraphsMaxHeap->keys);
 
-  // String command: char*
-  char *command = malloc(MAX_COMMAND_SIZE * sizeof *command);
+  // String command: char
+  char command;
 
   // -------------------------------- Memory Allocation --------------------------------
 
@@ -232,25 +226,21 @@ int main()
   while (1)
   {
     // Read command
-    if (!scanf("%s", command))
-    {
-      fprintf(stderr, "input error: scanf command");
-      exit(1);
-    }
+    command = getchar_unlocked();
 
     // After failed read, if eof exit the loop
     if (feof(stdin))
       break;
 
     // Parse command
-    if (!strcmp(command, ADD_GRAPH_COMMAND))
+    if (command == ADD_GRAPH_COMMAND)
     {
       // Increment graph index and insert graph in list (if it should be there)
       graphIndex++;
       MaxHeapInsertGraph(bestGraphsMaxHeap, &bestGraphs, graphIndex,
                          GetGraphFitness(&vertices, adjacencyMatrix, dijkstraMinHeap, minIDTuple, distances, processed));
     }
-    else if (!strcmp(command, GET_BEST_GRAPHS_COMMAND))
+    else if (command == GET_BEST_GRAPHS_COMMAND)
       // Print best graphs
       MaxHeapPrint(bestGraphsMaxHeap);
   }
@@ -263,7 +253,6 @@ int main()
   free(processed);
   free(bestGraphsMaxHeap->keys);
   free(bestGraphsMaxHeap);
-  free(command);
 
   // -------- PROFILING --------
 
